@@ -1,0 +1,6 @@
+# User Specific Setup
+*.DS_Store
+*settings.json
+
+# Data files
+*/data/*
