@@ -4,3 +4,10 @@
 
 # Data files
 */data/*
+
+# Python Environments
+.venv
+.env
+env/
+venv/
+pyproject.toml
