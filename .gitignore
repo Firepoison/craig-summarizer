@@ -1,0 +1,13 @@
+# User Specific Setup
+*.DS_Store
+*settings.json
+
+# Data files
+*/data/*
+
+# Python Environments
+.venv
+.env
+env/
+venv/
+pyproject.toml
