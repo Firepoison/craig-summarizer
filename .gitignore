@@ -11,3 +11,9 @@
 env/
 venv/
 pyproject.toml
+
+# Python Files
+**/__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
