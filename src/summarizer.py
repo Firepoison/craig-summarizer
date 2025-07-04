@@ -19,7 +19,7 @@ class Summarizer():
                 raise ValueError("GEMINI_API_KEY environment variable is not set.")
 
             genai.configure(api_key=api_key)
-            self._gemini_model = genai.GenerativeModel("gemini-1.5-pro")
+            self._gemini_model = genai.GenerativeModel("gemini-2.5-pro")
 
     def _prompt_builder(self, transcription) -> str:
         return (
