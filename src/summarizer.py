@@ -2,24 +2,23 @@
 import os
 
 # 3rd party imports
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 
 class Summarizer():
     def __init__(self):
-        self._gemini_model = None
+        self._client = None
         self._gemini_connect()
 
-
     def _gemini_connect(self):
-        if self._gemini_model is None:
+        if self._client is None:
             # Get Gemini key from env
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
                 raise ValueError("GEMINI_API_KEY environment variable is not set.")
 
-            genai.configure(api_key=api_key)
-            self._gemini_model = genai.GenerativeModel("gemini-2.5-pro")
+            self._client = genai.Client(api_key=api_key)
 
     def _prompt_builder(self, transcription) -> str:
         return (
@@ -50,10 +49,17 @@ class Summarizer():
             str: The generated summary text.
         """
 
-        gemini = self._gemini_model
         prompt = self._prompt_builder(transcription)
 
-        response = gemini.generate_content(prompt)
+        config = types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_level="medium")
+        )
+
+        response = self._client.models.generate_content(
+            model="gemini-3.1-pro-preview",
+            contents=prompt,
+            config=config
+        )
 
         return response.text
 

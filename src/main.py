@@ -9,7 +9,7 @@ from .summarizer import Summarizer
 
 
 # Path to audio file to transcribe
-audiofile_path = "src/data/06-25-25-FFEW.flac"
+audiofile_path = "src/data/04-25-26-FFEW-Meet.flac"
 
 # Setting the transcription settings
 transcriber = whisper.load_model("small")
