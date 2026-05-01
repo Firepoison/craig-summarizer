@@ -5,7 +5,7 @@ import json
 import whisper
 
 # Project imports
-from .summarizer import Summarizer
+from src.summarizer import Summarizer
 
 
 # Path to audio file to transcribe

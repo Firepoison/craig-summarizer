@@ -7,8 +7,9 @@ from google.genai import types
 
 
 class Summarizer():
-    def __init__(self):
+    def __init__(self, model_name="gemini-3-flash-preview"):
         self._client = None
+        self.model_name = model_name
         self._gemini_connect()
 
     def _gemini_connect(self):
@@ -56,7 +57,7 @@ class Summarizer():
         )
 
         response = self._client.models.generate_content(
-            model="gemini-3.1-pro-preview",
+            model=self.model_name,
             contents=prompt,
             config=config
         )
