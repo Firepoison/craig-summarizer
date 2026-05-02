@@ -39,15 +39,15 @@ class Summarizer():
         + "Summary:\n"
         )
 
-    def summarize(self, transcription):
+    def summarize_stream(self, transcription):
         """
-        Generates a summary of a given transcription using the Gemini model.
+        Generates a summary of a given transcription using the Gemini model in a streaming fashion.
 
         Args:
             transcription (str): The transcription text to be summarized.
 
-        Returns:
-            str: The generated summary text.
+        Yields:
+            str: Chunks of the generated summary text.
         """
 
         prompt = self._prompt_builder(transcription)
@@ -56,11 +56,13 @@ class Summarizer():
             thinking_config=types.ThinkingConfig(thinking_level="medium")
         )
 
-        response = self._client.models.generate_content(
+        response = self._client.models.generate_content_stream(
             model=self.model_name,
             contents=prompt,
             config=config
         )
 
-        return response.text
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
 
