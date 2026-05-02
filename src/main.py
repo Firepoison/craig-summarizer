@@ -53,7 +53,7 @@ class WhisperProgressWriter:
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
 
-def get_audio_files(directory_path="src/data"):
+def get_audio_files(directory_path="src/data/audio/"):
     """Scans the directory for audio files."""
     valid_extensions = {".flac", ".mp3", ".wav", ".m4a"}
     directory = Path(directory_path)
