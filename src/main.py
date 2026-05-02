@@ -5,11 +5,11 @@ import json
 import whisper
 
 # Project imports
-from .summarizer import Summarizer
+from src.summarizer import Summarizer
 
 
 # Path to audio file to transcribe
-audiofile_path = "src/data/01-26-25-FFEW.flac"
+audiofile_path = "src/data/04-25-26-FFEW-Meet.flac"
 
 # Setting the transcription settings
 transcriber = whisper.load_model("small")
