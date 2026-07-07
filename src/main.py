@@ -132,27 +132,17 @@ def select_audio_file(audio_files, console):
             
             live.update(generate_table(), refresh=True)
 
-def main():
-    # Force rich to use the underlying un-monkey-patchable stdout
-    console = Console(file=sys.__stdout__)
-    console.print(Panel.fit("[bold blue]Craig Summarizer[/bold blue]", border_style="blue"))
-    
-    # 1. File Selection
-    audio_files = sorted(get_audio_files())
-    if not audio_files:
-        console.print("[red]No audio files found in src/data.[/red]")
-        return
-
-    selected_file = select_audio_file(audio_files, console)
-    if not selected_file:
-        console.print("\n[yellow]Operation cancelled.[/yellow]")
-        return
-        
+def handle_transcription(selected_file, console):
     audiofile_path = str(selected_file)
+    transcription_dir = Path("src/data/transcriptions")
+    transcription_dir.mkdir(parents=True, exist_ok=True)
+    transcription_out_path = transcription_dir / f"{selected_file.stem}.json"
     
-    console.print(f"\n[green]Selected:[/green] {selected_file.name}")
+    if transcription_out_path.exists():
+        console.print(f"[cyan]Found existing transcription. Loading from {transcription_out_path}...[/cyan]")
+        with open(transcription_out_path, "r") as f:
+            return json.load(f)
 
-    # 2. Transcription
     try:
         audio_info = MutagenFile(audiofile_path)
         total_sec = audio_info.info.length if audio_info and audio_info.info else 100
@@ -177,13 +167,12 @@ def main():
             
         progress.update(task1, description="[green]Transcription complete!", completed=total_sec)
 
-    # Save transcription to a JSON file
-    transcription_out_path = "src/data/transcription_results.json"
     with open(transcription_out_path, "w") as f:
         json.dump(transcription, f, indent=4)
     console.print(f"[dim]Saved transcription data to {transcription_out_path}[/dim]")
+    return transcription
 
-    # 3. Summarization
+def handle_summarization(transcription, selected_file, console):
     console.print("\n[bold magenta]Initializing Summarizer...[/bold magenta]")
     summarizer = Summarizer()
     
@@ -195,18 +184,42 @@ def main():
             summary_text += chunk
             live.update(Panel(Markdown(summary_text), title="Gemini Summary (Streaming...)", border_style="magenta"))
             
-        # Final update
         live.update(Panel(Markdown(summary_text), title="Gemini Summary (Complete)", border_style="green"))
 
-    summary = summary_text
-
-    # Save summary to a text file
-    summary_out_path = "src/data/summary.txt"
+    summary_dir = Path("src/data/summaries")
+    summary_dir.mkdir(parents=True, exist_ok=True)
+    summary_out_path = summary_dir / f"{selected_file.stem}.txt"
+    
     with open(summary_out_path, "w", encoding="utf-8") as f:
-        f.write(summary)
+        f.write(summary_text)
     
     console.print(f"\n[dim]Saved summary to {summary_out_path}[/dim]")
-    console.print("[bold green]Process Completed Successfully![/bold green]")
+
+def main():
+    # Force rich to use the underlying un-monkey-patchable stdout
+    console = Console(file=sys.__stdout__)
+    console.print(Panel.fit("[bold blue]Craig Summarizer[/bold blue]", border_style="blue"))
+    
+    # 1. File Selection
+    audio_files = sorted(get_audio_files())
+    if not audio_files:
+        console.print("[red]No audio files found in src/data.[/red]")
+        return
+
+    selected_file = select_audio_file(audio_files, console)
+    if not selected_file:
+        console.print("\n[yellow]Operation cancelled.[/yellow]")
+        return
+        
+    console.print(f"\n[green]Selected:[/green] {selected_file.name}")
+
+    # 2. Transcription
+    transcription = handle_transcription(selected_file, console)
+    
+    # 3. Summarization
+    handle_summarization(transcription, selected_file, console)
+
+    console.print("\n[bold green]Process Completed Successfully![/bold green]")
 
 if __name__ == "__main__":
     try:

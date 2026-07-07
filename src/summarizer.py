@@ -1,13 +1,15 @@
 # Standard/Python imports
 import os
+import time
 
 # 3rd party imports
 from google import genai
-from google.genai import types
+from google.genai import types, errors
+import httpx
 
 
 class Summarizer():
-    def __init__(self, model_name="gemini-3-flash-preview"):
+    def __init__(self, model_name="gemini-3.5-flash"):
         self._client = None
         self.model_name = model_name
         self._gemini_connect()
@@ -56,13 +58,29 @@ class Summarizer():
             thinking_config=types.ThinkingConfig(thinking_level="medium")
         )
 
-        response = self._client.models.generate_content_stream(
-            model=self.model_name,
-            contents=prompt,
-            config=config
-        )
+        max_retries = 6
+        for attempt in range(max_retries):
+            chunks_yielded = 0
+            try:
+                response = self._client.models.generate_content_stream(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=config
+                )
 
-        for chunk in response:
-            if chunk.text:
-                yield chunk.text
+                for chunk in response:
+                    if chunk.text:
+                        chunks_yielded += 1
+                        yield chunk.text
+                break  # Success, exit retry loop
+            except (errors.ServerError, httpx.RemoteProtocolError) as e:
+                # Only retry if we haven't yielded any chunks yet to avoid duplicate text
+                if chunks_yielded > 0:
+                    raise e
+                    
+                if attempt < max_retries - 1:
+                    # Sleep longer to wait out demand spikes: 6s, 7s, 9s, 13s, 21s...
+                    time.sleep((2 ** attempt) + 5)
+                else:
+                    raise e
 
